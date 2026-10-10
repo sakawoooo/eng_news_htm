@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>You Buy, We Fry</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;overflow:hidden;}
+  body{
+    background:#14110e;
+    color:#f5efe6;
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;z-index:0;
+    background:radial-gradient(ellipse at 50% -15%, #2b2219 0%, #14110e 55%);
+  }
+  .deck{position:relative;z-index:1;height:100%;}
+
+  .slide{
+    position:absolute;inset:0;
+    display:flex;flex-direction:column;
+    justify-content:center;align-items:center;
+    text-align:center;
+    padding:8vh 8vw 12vh;
+    opacity:0;visibility:hidden;
+    transform:translateY(24px);
+    transition:opacity .65s cubic-bezier(.4,0,.2,1),
+               transform .65s cubic-bezier(.4,0,.2,1),
+               visibility .65s;
+  }
+  .slide.active{opacity:1;visibility:visible;transform:translateY(0);}
+
+  .kicker{
+    font-size:clamp(10px,0.95vw,13px);
+    letter-spacing:.32em;
+    text-transform:uppercase;
+    color:#8a7f72;
+    margin-bottom:clamp(18px,3.5vh,40px);
+    font-weight:500;
+  }
+
+  /* ---------- #View 标签（更大、更分散） ---------- */
+  .view-tag{
+    font-size:clamp(26px,3.2vw,48px);
+    letter-spacing:.24em;
+    text-transform:uppercase;
+    color:#e0a458;
+    font-weight:600;
+    margin-bottom:clamp(18px,2.6vh,36px);
+  }
+
+  /* ---------- 第三页小标题（加大一号、更分散） ---------- */
+  .kicker-lg{
+    font-size:clamp(14px,1.45vw,19px);
+    letter-spacing:.55em;
+  }
+
+  /* ---------- 封面 ---------- */
+  .title{
+    font-family:Georgia,"Times New Roman","Songti SC",serif;
+    font-size:clamp(42px,7vw,102px);
+    font-weight:400;
+    line-height:1.04;
+    letter-spacing:-0.02em;
+  }
+  .title .accent{color:#e0a458;font-style:italic;}
+
+  .subtitle{
+    font-family:Georgia,"Times New Roman",serif;
+    font-size:clamp(16px,2vw,28px);
+    color:#c9bcab;
+    margin-top:clamp(16px,3vh,32px);
+  }
+  .cn{
+    font-size:clamp(12px,1.2vw,16px);
+    color:#8a7f72;
+    margin-top:clamp(12px,2vh,22px);
+    letter-spacing:.24em;
+  }
+
+  /* ---------- Little Wok, Big Deal ---------- */
+  .lwbd{
+    font-family:Georgia,"Times New Roman",serif;
+    font-weight:400;
+    line-height:.98;
+    letter-spacing:-0.02em;
+  }
+  .lwbd .l1{display:block;}
+  .lwbd .l2{display:block;margin-top:.06em;}
+
+  .lwbd .little{
+    font-size:clamp(30px,4.6vw,66px);
+    font-style:italic;
+    color:#b8a894;
+    letter-spacing:-0.01em;
+  }
+  .lwbd .wok{
+    font-size:clamp(58px,10vw,148px);
+    color:#f5efe6;
+    letter-spacing:-0.03em;
+    margin-left:.05em;
+  }
+  .lwbd .big{
+    font-size:clamp(58px,10vw,148px);
+    font-weight:700;
+    color:#e0a458;
+    letter-spacing:-0.03em;
+    text-shadow:0 0 70px rgba(224,164,88,.25);
+  }
+  .lwbd .deal{
+    font-size:clamp(58px,10vw,148px);
+    font-style:italic;
+    color:#f5efe6;
+    letter-spacing:-0.015em;
+    margin-left:.14em;
+  }
+  .lwbd .comma{color:#e0a458;}
+
+  .lwbd-cn{
+    font-size:clamp(12px,1.2vw,16px);
+    color:#a89a86;
+    letter-spacing:.46em;
+    text-indent:.46em;
+    margin-top:clamp(28px,5vh,56px);
+  }
+  .rule{
+    width:clamp(50px,6vw,90px);
+    height:1px;
+    background:linear-gradient(90deg,transparent,#e0a458,transparent);
+    margin:clamp(22px,4vh,40px) auto 0;
+  }
+
+  /* ---------- 三列（整体放大） ---------- */
+  .cols{
+    display:flex;
+    gap:clamp(32px,5.5vw,110px);
+    flex-wrap:wrap;
+    justify-content:center;
+    align-items:flex-start;
+  }
+  .col{
+    display:flex;flex-direction:column;align-items:center;
+    min-width:200px;
+    max-width:300px;
+  }
+  .col .num{
+    font-family:Georgia,serif;
+    font-size:clamp(12px,1.1vw,15px);
+    color:#e0a458;
+    letter-spacing:.22em;
+    margin-bottom:clamp(12px,1.8vh,22px);
+  }
+  .col .en{
+    font-family:Georgia,"Times New Roman",serif;
+    font-size:clamp(24px,3.2vw,48px);
+    line-height:1.14;
+    color:#f5efe6;
+  }
+  .col .zh{
+    font-size:clamp(13px,1.4vw,19px);
+    color:#e0a458;
+    letter-spacing:.34em;
+    margin-top:clamp(12px,1.8vh,22px);
+  }
+  .col .desc{
+    font-size:clamp(12px,1.15vw,16px);
+    color:#8a7f72;
+    margin-top:clamp(10px,1.5vh,18px);
+    line-height:1.75;
+    max-width:24ch;
+  }
+
+  /* ---------- 双列（整体放大） ---------- */
+  .duo{
+    display:flex;
+    gap:clamp(50px,10vw,180px);
+    flex-wrap:wrap;
+    justify-content:center;
+    align-items:flex-start;
+  }
+  .duo .item{display:flex;flex-direction:column;align-items:center;}
+  .duo .en{
+    font-family:Georgia,"Times New Roman",serif;
+    font-size:clamp(32px,5vw,78px);
+    line-height:1.1;
+  }
+  .duo .zh{
+    font-size:clamp(13px,1.5vw,20px);
+    color:#e0a458;
+    letter-spacing:.44em;
+    margin-top:clamp(14px,2.2vh,26px);
+  }
+
+  /* ---------- #View3 大标题 ---------- */
+  .v3-title{
+    font-family:Georgia,"Times New Roman","Songti SC",serif;
+    font-weight:400;
+    font-size:clamp(28px,4.4vw,64px);
+    line-height:1.18;
+    letter-spacing:-0.02em;
+  }
+  .v3-title .accent{color:#e0a458;font-style:italic;}
+  .v3-cn{
+    font-size:clamp(12px,1.2vw,16px);
+    color:#a89a86;
+    letter-spacing:.46em;
+    text-indent:.46em;
+    margin-top:clamp(20px,3.5vh,40px);
+  }
+
+  /* ---------- 收尾 ---------- */
+  .closing{
+    font-family:Georgia,"Songti SC",serif;
+    font-size:clamp(20px,3vw,44px);
+    line-height:1.55;
+    max-width:20ch;
+  }
+  .closing .accent{color:#e0a458;}
+
+  /* ---------- 底部导航 ---------- */
+  .footer{
+    position:fixed;left:0;right:0;bottom:0;
+    display:flex;justify-content:space-between;align-items:center;
+    padding:0 clamp(20px,3.5vw,56px) clamp(16px,2.6vh,30px);
+    z-index:10;
+    pointer-events:none;
+  }
+  .dots{display:flex;gap:8px;pointer-events:auto;}
+  .dot{
+    width:6px;height:6px;border-radius:50%;
+    background:#3a3229;cursor:pointer;
+    transition:background .3s,transform .3s;
+  }
+  .dot.active{background:#e0a458;transform:scale(1.4);}
+  .hint{
+    font-size:10px;letter-spacing:.2em;color:#4d4438;
+    text-transform:uppercase;
+  }
+  .bar{
+    position:fixed;left:0;bottom:0;height:2px;
+    background:#e0a458;width:0;
+    transition:width .65s cubic-bezier(.4,0,.2,1);
+    z-index:11;
+  }
+</style>
+</head>
+<body>
+
+<div class="deck">
+
+  <!-- 1 封面 -->
+  <section class="slide active">
+    <p class="kicker">民生新闻观察 · 上海</p>
+    <h1 class="title">You <em class="accent">Buy</em>,<br>We <em class="accent">Fry</em></h1>
+    <p class="subtitle">菜场代炒 · 你买菜，我开火</p>
+  </section>
+
+  <!-- 2 Little Wok, Big Deal -->
+  <section class="slide">
+    <p class="kicker">Shanghai · Caichang</p>
+    <h2 class="lwbd">
+      <span class="l1">
+        <em class="little">Little</em>
+        <span class="wok">Wok</span><span class="comma">,</span>
+      </span>
+      <span class="l2">
+        <span class="big">Big</span>
+        <em class="deal">Deal</em>
+      </span>
+    </h2>
+    <p class="lwbd-cn">小炒锅 · 大民生</p>
+    <div class="rule"></div>
+  </section>
+
+  <!-- 3 三个卖点（第三页：#View1 + Why It Works 加大、分散，整体放大） -->
+  <section class="slide">
+    <p class="view-tag">#View1</p>
+    <p class="kicker kicker-lg">Why It Works</p>
+    <div class="cols">
+      <div class="col">
+        <div class="num">01</div>
+        <div class="en">Skip the<br>Cooking</div>
+        <div class="zh">省事</div>
+        <p class="desc">买完就下锅，拎回家还热着</p>
+      </div>
+      <div class="col">
+        <div class="num">02</div>
+        <div class="en">Taste the<br>Wok</div>
+        <div class="zh">好吃</div>
+        <p class="desc">明厨现炒，锅气不输饭店</p>
+      </div>
+      <div class="col">
+        <div class="num">03</div>
+        <div class="en">Save Your<br>Cash</div>
+        <div class="zh">便宜</div>
+        <p class="desc">几块钱加工费，四五人两百以内</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 升华（整体放大） -->
+  <section class="slide">
+    <p class="kicker">What It Really Brings</p>
+    <div class="duo">
+      <div class="item">
+        <div class="en">Human<br>Warmth</div>
+        <div class="zh">更暖心</div>
+      </div>
+      <div class="item">
+        <div class="en">Social<br>Cohesion</div>
+        <div class="zh">更和谐</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 #View2 三重隐忧（整体放大） -->
+  <section class="slide">
+    <p class="view-tag">#View2</p>
+    <div class="cols">
+      <div class="col">
+        <div class="num">01</div>
+        <div class="en">Difficulty of<br>Satisfying<br>Diverse Groups</div>
+        <div class="zh">众口难调</div>
+        <p class="desc">一桌人各有各的口味，难有统一答案</p>
+      </div>
+      <div class="col">
+        <div class="num">02</div>
+        <div class="en">Pressure of<br>Food Safety<br>Supervision</div>
+        <div class="zh">监管承压</div>
+        <p class="desc">生熟混流、明火现炒，安全责任更重</p>
+      </div>
+      <div class="col">
+        <div class="num">03</div>
+        <div class="en">Short-term<br>Popularity,<br>Few Long-term<br>Visitors</div>
+        <div class="zh">后劲不足</div>
+        <p class="desc">一时爆火，长期客流仍显不足</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 #View3 大标题 -->
+  <section class="slide">
+    <p class="view-tag">#View3</p>
+    <h2 class="v3-title">The Hidden Danger<br>Under the Update of<br><em class="accent">Vegetable Markets</em></h2>
+    <p class="v3-cn">菜场更新背后的隐忧</p>
+    <div class="rule"></div>
+  </section>
+
+  <!-- 7 收尾 -->
+  <section class="slide">
+    <p class="closing">让服务<span class="accent">弯下腰来</span><br>去适应普通人的日子</p>
+    <p class="subtitle" style="margin-top:clamp(20px,3.5vh,44px);">Little Wok, Big Deal</p>
+  </section>
+
+</div>
+
+<div class="bar" id="bar"></div>
+<div class="footer">
+  <div class="dots" id="dots"></div>
+  <div class="hint">← → 翻页</div>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const dotsBox = document.getElementById('dots');
+  const bar = document.getElementById('bar');
+  let idx = 0;
+
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.addEventListener('click', () => go(i));
+    dotsBox.appendChild(d);
+  });
+  const dots = document.querySelectorAll('.dot');
+
+  function go(n) {
+    idx = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+    dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+    bar.style.width = ((idx + 1) / slides.length * 100) + '%';
+  }
+
+  document.addEventListener('keydown', e => {
+    if (['ArrowRight','ArrowDown',' ','PageDown','Enter'].includes(e.key)) {
+      e.preventDefault(); go(idx + 1);
+    }
+    if (['ArrowLeft','ArrowUp','PageUp'].includes(e.key)) {
+      e.preventDefault(); go(idx - 1);
+    }
+    if (e.key === 'Home') go(0);
+    if (e.key === 'End') go(slides.length - 1);
+  });
+
+  document.addEventListener('click', e => {
+    if (e.target.closest('.dot')) return;
+    go(idx + 1);
+  });
+
+  let tx = 0;
+  document.addEventListener('touchstart', e => tx = e.changedTouches[0].clientX, {passive:true});
+  document.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - tx;
+    if (Math.abs(dx) > 50) go(idx + (dx < 0 ? 1 : -1));
+  }, {passive:true});
+
+  go(0);
+</script>
+</body>
+</html>
